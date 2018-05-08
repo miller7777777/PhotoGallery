@@ -18,21 +18,34 @@ public class ThumbnailDownloader <T> extends HandlerThread {
     public static final int MESSAGE_DOWNLOAD = 0;
 
     private boolean mHasQuit = false;
-    private Handler mReaquestHandler;
-    private ConcurrentMap<T, String> mRrquestMap = new ConcurrentHashMap<>();
+    private Handler mRequestHandler;
+    private ConcurrentMap<T, String> mRequestMap = new ConcurrentHashMap<>();
+    private Handler mResponceHandler;
+    private ThumbnailDownloadListener<T> mThumbnailDownloadListener;
 
-    public ThumbnailDownloader() {
+    public interface ThumbnailDownloadListener<T> {
+        void onThumbnailDownloaded(T target, Bitmap thumbnail);
+    }
+
+    public void setmThumbnailDownloadListener(ThumbnailDownloadListener<T> listener) {
+        mThumbnailDownloadListener = listener;
+    }
+
+
+
+    public ThumbnailDownloader(Handler responseHandler) {
         super(TAG);
+        mResponceHandler = responseHandler;
     }
 
     @Override
     protected void onLooperPrepared() {
-        mReaquestHandler = new Handler() {
+        mRequestHandler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
                 if (msg.what == MESSAGE_DOWNLOAD) {
                     T target = (T) msg.obj;
-                    Log.i(TAG, "Got a request for URL: " + mRrquestMap.get(target));
+                    Log.i(TAG, "Got a request for URL: " + mRequestMap.get(target));
                     handleRequest(target);
                 }
             }
@@ -49,17 +62,22 @@ public class ThumbnailDownloader <T> extends HandlerThread {
         Log.i(TAG, "Got a URL: " + url);
 
         if (url == null) {
-            mRrquestMap.remove(target);
+            mRequestMap.remove(target);
         } else {
-            mRrquestMap.put(target, url);
-            mReaquestHandler.obtainMessage(MESSAGE_DOWNLOAD, target)
+            mRequestMap.put(target, url);
+            mRequestHandler.obtainMessage(MESSAGE_DOWNLOAD, target)
                     .sendToTarget();
         }
     }
 
+    public void clearQueue() {
+        mRequestHandler.removeMessages(MESSAGE_DOWNLOAD);
+        mRequestMap.clear();
+    }
+
     private void handleRequest(final T target) {
         try {
-            final String url = mRrquestMap.get(target);
+            final String url = mRequestMap.get(target);
             if (url == null) {
                 return;
             }
@@ -68,6 +86,17 @@ public class ThumbnailDownloader <T> extends HandlerThread {
             final Bitmap bitmap = BitmapFactory
                     .decodeByteArray(bitmapBytes, 0, bitmapBytes.length);
             Log.i(TAG, "Bitmap created");
+            mResponceHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (mRequestMap.get(target) != url || mHasQuit) {
+                        return;
+                    }
+
+                    mRequestMap.remove(target);
+                    mThumbnailDownloadListener.onThumbnailDownloaded(target, bitmap);
+                }
+            });
 
         } catch (IOException ioe) {
             Log.e(TAG, "Error downloading image", ioe);
