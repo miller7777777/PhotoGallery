@@ -1,5 +1,6 @@
 package com.bignerdranch.android.photogallery;
 
+
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
@@ -25,7 +26,7 @@ import android.widget.ImageView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PhotoGalleryFragment extends Fragment{
+public class PhotoGalleryFragment extends Fragment {
 
     //    Key:
     //3fec9fcc24daeb8ade6c9def25958063
@@ -50,8 +51,7 @@ public class PhotoGalleryFragment extends Fragment{
         setHasOptionsMenu(true);
         updateItems();
 
-        Intent i = PollService.newIntent(getActivity());
-        getActivity().startService(i);
+        PollService.setServiceAlarm(getActivity(), true);
 
         Handler responseHandler = new Handler();
         mThumbnailDownloader = new ThumbnailDownloader<>(responseHandler);
