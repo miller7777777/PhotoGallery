@@ -26,7 +26,7 @@ import android.widget.ImageView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PhotoGalleryFragment extends Fragment {
+public class PhotoGalleryFragment extends VisibleFragment {
 
     //    Key:
     //3fec9fcc24daeb8ade6c9def25958063
