@@ -22,6 +22,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.net.Uri;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,13 +37,13 @@ public class PhotoGalleryFragment extends VisibleFragment {
 
     private static final String TAG = "PhotoGalleryFragment";
 
-    public ThumbnailDownloader<PhotoHolder> getmThumbnailDownloader() {
-        return mThumbnailDownloader;
-    }
-
     private RecyclerView mPhotoRecyclerView;
     private List<GalleryItem> mItems = new ArrayList<>();
     private ThumbnailDownloader<PhotoHolder> mThumbnailDownloader;
+
+    public ThumbnailDownloader<PhotoHolder> getThumbnailDownloader() {
+        return mThumbnailDownloader;
+    }
 
     public static Fragment newInstance() {
         return new PhotoGalleryFragment();
@@ -194,6 +195,7 @@ public class PhotoGalleryFragment extends VisibleFragment {
 //            Intent i = new Intent(Intent.ACTION_VIEW, mGalleryItem.getPhotoPageUri());
             Intent i = PhotoPageActivity.newIntent(getActivity(), mGalleryItem.getPhotoPageUri());
             startActivity(i);
+//            Log.i("Miller777", mGalleryItem.getPhotoPageUri().toString());
         }
     }
 
